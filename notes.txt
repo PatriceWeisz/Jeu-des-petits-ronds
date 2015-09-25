@@ -1,0 +1,147 @@
+﻿Fichier texte
+notes petites croix :PW
+
+Les règles du Jeu :
+Grand Morpion :
+Faire des croix tour à tour dans les cases.
+Pour gagner : aligner 5 croix pour avoir un point.
+A- GUI :
+voir Pygame si plus rapide pour affichage ordi vs ordi des croix
+Faire 2 frames
+    -1 pour le damier
+    - 1 pour les messages :
+            Titre
+            Affichage du score des joueurs
+            Relancer la partie
+            Mode de jeu : 2 joueurs, 1 joueur vs ordi, ordi vs ordi
+            Ordis :Nb de parties à jouer
+            Ordis : Score ordi1 et ordi2
+            Ordis :Affichage des coups : O/N
+B- A FAIRE :
+- Affichage d'un rond au clic selon la couleur choisie (pour les tests) OK
+    avec détection des cases occupées (mode 2 joueurs) OK
+- Détection des lignes de 5 croix OK
+(quelle structure de stockage matrice numpy ? pour aller vite) OK
+2 matrice numpy : 1 par joueur NON
+Détection des lignes: balayage d'une matrice booleenne NON
+-réinitialisation du jeu
+-réglage de la profondeur d'analyse
+-affichage du nombre de positions envisagés (ralentit la recherche)
+
+C- STRATEGIE :
+    - Faire jouer l'ordi contre lui-même afin d'optimiser ses stratégies.
+    (1000 parties en vitesse)
+    - Trouver un algo de changement de stratégie :
+    - nouvelle stratégie contre ancienne stratégie et garder la meilleure.
+    - arriver à codifier une stratégie sous-forme de d'enchainement de patterns.
+
+Game workflow :
+
+A qui le tour ?
+Si c'est ordi, voir si coup perdant à éviter
+sinon trouver une stratégie de patterns :
+pattern du flocon avec pour chaque case de la grille, les 8 départs gagnants.
+structure objet :
+cases, branches (5 cases), flocons (8 branches), cases jouées (X flocons)
+initialisation du jeu : création de tous les flocons sans propriétaire.
+chaque fois qu'un rond J1 est joué :
+attribution du flocon à J1
+remplissage des branches de flocon concernés
+sélection de tous les flocons gagnants à partir des branches
+choix du coup ayant le plus de branches gagnantes
+Chaque fois qu'un rond J2 est joué :
+élimination des branches des flocons concernés
+
+Réglage de la profondeur d'analyse
+
+algo stratégie :
+algo pattern pour savoir où jouer :
+on regarde quoi jouer :
+études des patterns existantes et choix du meilleur coup
+si coup non gagnant, on stocke les nouvelles patterns créées.
+il y a un ordre de lecture de la pattern (de haut en bas et de gauche à droite)
+pour éviter la redondance.
+
+class pattern()
+self.ancre(x,y) # en haut à gauche
+type de pattern :
+matrice boolenne (5,5) # contient le dessin de la pattern ou juste les points ?
+
+chercher à faire dans l'ordre inverse :
+rond
+batonnet de 3 troué
+batonnet de 2
+équerre de 2
+batonnet de 3
+L troué, T troué (?)
+L couché ou debout ou T (1 batonnet de 2 + 1 batonnet de 3 attaché)
+equerre trouée (1 batonnet de 3 + un rond
+équerre de 2 batonnets de 3 ou croix
+triangle de 3 batonnets de 3.
+batonnet de 4 troué
+batonnet de 4 (3+1 ou 4 troué)
+batonnet de 5 troué
+batonnet de 5 (4+1 ou 5 troué)
+
+Si un batonnet de 4 à compléter : jouer l'extrémité libre : gagné
+Sinon
+    Si un batonnet adverse de 4 a une extrémité libre : blocage (car coup perdant
+Sinon
+    Si un batonnet de 3 a 2 extrémités libres avec 2 voisins libres:  (coup gagnant)
+Sinon
+    Si un batonnet adverse de 3 a 2 extrémités libres :
+    Choisir l'extrémité en fonction de son voisinage (prendre la plus pleine)
+Sinon
+    chercher à faire des batonnets de 3 avec 2 extrémités libres
+        si un batonnet de 2 existe : vérifier 3 voisins libres à gauche
+        /3 voisins libres à droite
+        jouer l'extrémité la plus pleine (ayant des voisins)
+        sinon:
+            si 3 voisins libres ou de même couleur d'un coté Et que 2 de l'autre ; jouer coté des 3.
+        sinon:
+        si un triangle de 2, chercher à faire un triangle de 3
+            si un batonnet de 2 mais avec 2 voisins ou moins de chaque coté :
+            trianguler 2 x 2 à angle droit (?)
+            en choisissant la liberté de voisinage (3 voisins de chaque coté)
+        sinon: (pas de batonnet de 2):
+            créer un batonnet de 2 autour d'un point avec 4 voisins de chaque coté.
+                en prenant une branche non vide si possible. (?)
+            sinon jouer la case avec le plus de voisins
+
+uniquement stockage des flocons de chaque point joué ? nuage du joueur
+nuage de l'adversaire
+le nuage est constitué de batonnets de longueur 1,2,3 ou 4 ronds contigus
+il y a 4 listes.
+et les triangles ?
+triangles de 2 de coté
+triangles de 3 de coté
+quand on ajoute un point,
+creation de batonnets (étudie le flocon du point)
+si 2 à gauche et 2 à droite : gagné ! batonnet de 5 ronds
+si 2 à G et 1 à D : batonnet(s) de 4
+stocket les bouts libres (bl)
+supprimer le(s) batonnet(s) de 2
+supprimer le(s) rond(s) isolé(s)
+Si 1 à G et 2 à D : batonnet de 4 etc..
+si 1 à G et 1 à D :batonner de 3
+si 1 à G et 0 à D : batonnet de 2
+si 0 à G et 1 à D : batonnet de 2
+supprimer les ronds isolés
+
+suppression des batonnets n-1 de la liste dédiée
+un batonnet doit etre accessible par ses deux extrémités
+à chaque rond d'un batonnet est attaché son flocon.
+le flocon sert à étudier le voisinnage.
+
+type de batonnets :
+ma couleur :
+4 ronds, 1 bl (bout libre)
+3 ronds, 2 bl avec 2 voisins libres ou meme couleur
+2 ronds, 2bl Avec 3 voisins libres G et D
+
+
+adverse :
+4 ronds, 1 bl
+3 ronds, 2 bl
+
+
