@@ -82,7 +82,6 @@ class Calcul(object):
                 return True,[i,ki+k,i,ki+k+4] # return les extrémités gagnantes
         return False,[]
 
-
     def diago5(self,i,j,AL5):
         """ alignement en diagonale ?"""
         binf = max(min(i,j)-4,0) - min(i,j)
@@ -135,12 +134,9 @@ class Calcul(object):
         else:
             jeu=self.jeu_J1
         if jeu.liste_coups !=[]: # si coups existants
-            for cp in jeu.liste_coups:
-                pat=jeu.liste_patterns[cp]
-                # print(qui,pat.name)
+            for pat in jeu.liste_patterns.values():
                 if pat.name == pattern: # pattern trouvée
                     coup=pat.joue()
-                    # print(coup)
                     if coup not in jeu.liste_coups and coup != (-1,-1):
                         x,y=coup
                         x=x*self.CASE
@@ -158,26 +154,27 @@ class Calcul(object):
                     ('A','Batonnet_3'),
                     ('M','Batonnet_2'),
                     ('A','Batonnet_2'),
-                    ('M','Singleton')]
+                    ('M','Singleton'),
+                    ('A','Singleton')]
         for exa in strategie:
             coup = self.test_pattern(exa)
             if coup != (-1,-1):
                 # print(coup)
                 return coup # on retourne le coup gagnant ou  non perdant
 
-        # on poursuit avec les autres coups possibles :
-        liste_patterns=[pa for jo,pa in strategie]
-        bests=[]
-        if self.jeu_J2.liste_coups !=[]:
-            for cp in self.jeu_J2.liste_coups:
-                # examine les patterns associées à chaque coup joué
-                pat=self.jeu_J2.liste_patterns[cp]
-                if pat not in liste_patterns:
-                    coup=pat.joue()
-                # si pas déjà joué et candidat trouvé :
-                if coup not in self.jeu_J2.liste_coups and coup != (-1,-1):
-                    bests.append(coup) # coup possible
-        if self.jeu_J2.liste_coups ==[] or bests==[]: # coup tiré au hasard
+        ## on poursuit avec les autres coups possibles : ?
+        #liste_patterns=[pa for jo,pa in strategie]
+        #bests=[]
+        #if self.jeu_J2.liste_coups !=[]:
+            #for cp in self.jeu_J2.liste_coups:
+                ## examine les patterns associées à chaque coup joué
+                #pat=self.jeu_J2.liste_patterns[cp]
+                #if pat not in liste_patterns:
+                    #coup=pat.joue()
+                ## si pas déjà joué et candidat trouvé :
+                #if coup not in self.jeu_J2.liste_coups and coup != (-1,-1):
+                    #bests.append(coup) # coup possible
+        if self.jeu_J2.liste_coups ==[] or bests==[]: # 1er coup tiré au hasard
             case_vide=False
             while case_vide == False:
                 x = rd.randint(5,self.NBCOL-5)
@@ -194,21 +191,19 @@ class Calcul(object):
         """ regenere les patterns à chaque coup joué """
         if self.jeu_J1.liste_coups !=[]:
             for cp in self.jeu_J1.liste_coups:
-                x,y=cp
-                ok=self.jeu_J1.cherche_patterns(x,y)
-                if ok is not False:
-                    self.jeu_J1.liste_patterns[cp]=self.jeu_J1.cherche_patterns(x,y)
+                pat = self.jeu_J1.cherche_patterns(*cp)
+                if pat is not False: # stocke l'instance de la pattern
+                    self.jeu_J1.liste_patterns[cp] = pat
                 else:
-                    print('patterns  pas trouvé en', (x,y))
+                    print('patterns  pas trouvé en', cp)
                     self.jeu_J1.liste_patterns[cp]='????'
         if self.jeu_J2.liste_coups !=[]:
             for cp in self.jeu_J2.liste_coups:
-                x,y=cp
-                ok=self.jeu_J2.cherche_patterns(x,y)
-                if ok is not False:
-                    self.jeu_J2.liste_patterns[cp]=self.jeu_J2.cherche_patterns(x,y)
+                pat=self.jeu_J2.cherche_patterns(*cp)
+                if pat is not False:
+                    self.jeu_J2.liste_patterns[cp] = pat
                 else:
-                    print('patterns  pas trouvé en', (x,y))
+                    print('patterns  pas trouvé en', cp)
                     self.jeu_J2.liste_patterns[cp]='????'
         # print(self.jeu_J1.liste_patterns)
         # print(self.jeu_J2.liste_patterns)
@@ -224,7 +219,7 @@ class Nuage_jeu(object):
         self.joueur=joueur # code du joueur '1' ou '2'
 
     def cherche_patterns(self,x,y):
-        """ calcule la pattern pour le nouveau coup joué"""
+        """ recalcule la pattern pour chaque coup joué"""
         p =['Batonnet_4',
             'Batonnet_3',
             'Batonnet_2',
@@ -378,8 +373,7 @@ class Batonnet_3(Patterns):
                 if pattern in pat: # la branche contient la pattern
                     extremi = pos_ind[Batonnet_3.patterns.index(motif)]
 
-                    if type(extremi) is tuple:
-                        # on choisit la meilleure extremité
+                    if type(extremi) is tuple:  # on choisit la meilleure extremité
                         total={}
                         for extr in extremi: # on prend les 2 extremités pour choisir
                             total[extr]=0
@@ -405,10 +399,10 @@ class Batonnet_2(Patterns):
     """ codage de 2 Batonnets """
 
     name='Batonnet_2'
-    patterns=[
-    '00X0X00',
-    '00XX000',
-    '000XX00']
+    patterns = [
+        '00X0X00',
+        '00XX000',
+        '000XX00']
 
     def joue(self): # methode qui joue le meilleur coup du Batonnet_3
         """ retourne l'extrémité ou le trou gagnant dans la branche """
@@ -421,14 +415,32 @@ class Batonnet_2(Patterns):
     def est(self):
         """ verifie si c'est un Batonnet_2 """
         ok = False
-        pos_ind={0:3, 1:4, 2:2} # position des zeros gagnants
+        pos_ind={0:3, 1:(1,4), 2:(2,5)} # position des zeros gagnants
         for motif in Batonnet_2.patterns:
             pattern = motif.replace('X',self.joueur)
             for k in range(4):
-                pat = ''.join([str(i) for i in self.branches()[k][0]])
+                branch = self.branches()[k]
+                pat = ''.join([str(i) for i in branch[0]])
                 if pattern in pat: # la branche contient la pattern
-                    pos = pat.index(pattern)+ pos_ind[Batonnet_2.patterns.index(motif)]
-                    x,y =self.branches()[k][1][pos], self.branches()[k][2][pos]
+                    extremi = pos_ind[Batonnet_2.patterns.index(motif)]
+                    
+                    if type(extremi) is tuple:  # on choisit la meilleure extremité
+                        total={}
+                        for extr in extremi: # on prend les 2 extremités pour choisir
+                            total[extr]=0
+                            pos = pat.index(pattern) + extr # position de l'extremité
+                            xe,ye = branch[1][pos], branch[2][pos] # coord des extremites
+                            floc_extr=self.flocons.coups[(xe,ye)].branches
+                            for kk in range(4):
+                                branch_extr = floc_extr()[kk]
+                                total[extr] += branch_extr[0].count(eval(self.joueur))
+                        if total[extremi[0]] > total[extremi[1]]:
+                            extremi = extremi[0] # prend le plus grand total de meme couleur
+                        else:
+                            extremi = extremi[1]
+                    
+                    pos = pat.index(pattern) + extremi
+                    x,y =branch[1][pos], branch[2][pos]
                     ok = True
                     print('Batonnet_2',x,y)
                     return ok,(x,y)

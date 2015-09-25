@@ -32,8 +32,8 @@ class Gui:
     TEXTES = 400 # zone de texte
     BTN_R = pygame.Rect(733,93,34,34) # boutons des parametres
     BTN_B = pygame.Rect(773,93,34,34)
-    BTN_RZ = pygame.Rect(848,96,57,28)
-    BTN_ORDI = pygame.Rect(698,136,67,28)
+    BTN_RZ = pygame.Rect(848,96,67,28)
+    BTN_ORDI = pygame.Rect(698,136,78,28)
 
     def __init__(self):
         """ initalise le jeu et lance la boucle d'evenements """
@@ -45,7 +45,7 @@ class Gui:
         self.fenetre = pygame.display.set_mode((tabl_larg + self.TEXTES,tabl_haut),0,32)
         pygame.display.set_caption('Petits Ronds ')
         # affichage du titre :
-        self.affi_texte('Jeux des 5 Petits Ronds', 'Arial', 36,
+        self.affi_texte('Jeux des 5 Petits Ronds', 'Arial', 26,
         tabl_larg+60, 8, Gui.VERT, Gui.NOIR)
         # affichage de la grille :
         # affichage des boutons de paramètres :
